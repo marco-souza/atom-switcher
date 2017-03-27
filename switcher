@@ -107,6 +107,6 @@ if (switcher.delete)
 // Init Switcher
 if (switcher.init)
     exec('cp -r ~/.atom/ ./atom-base', (err)=>{
-        (err) ? console.log(`Error on Init Switcher: ${err}`);
+        (err) ? console.log(`Error on Init Switcher: ${err}`)
         : console.log("Switcher Sucessfully initialized!");
     })
