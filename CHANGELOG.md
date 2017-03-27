@@ -1,0 +1,3 @@
+# Changelog
+
+- [x] Created Switcher

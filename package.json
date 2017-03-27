@@ -1,0 +1,22 @@
+{
+  "name": "atom-switcher",
+  "version": "0.0.1",
+  "description": "A script to switch atom environments",
+  "main": "switcher",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "switcher",
+    "atom-switcher",
+    "atom",
+    "environments"
+  ],
+  "author": "Marco Antônio",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "commander": "^2.9.0",
+    "lodash": "^4.17.4"
+  }
+}

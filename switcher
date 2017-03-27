@@ -1,0 +1,112 @@
+#! /usr/bin/env node
+
+/* Imports */
+let switcher    = require("commander"),
+    _           = require("lodash"),
+    exec        = require("child_process").exec,
+    chalk       = require("chalk");
+
+/* CLI Setup */
+switcher
+    .version("0.0.1")
+    // Create
+    .option("-n, --new [name]", "Create and use the [name] environment")
+    // Change
+    .option("-c, --change [name]", "Switch to [name] environment")
+    // Delete
+    .option("-d, --delete [name]", "Delete [name] environment")
+    // List
+    .option("-l, --list", "List all created environments")
+    // Init
+    .option("-i, --init", "Init switcher")
+    .parse(process.argv)
+
+
+/* Useful Functions */
+let switchEnv = (name)=>{
+        return exec(`ln -sf ./${name} ~/.atom`, (err)=> {
+            if(err) {
+                console.log(`Error on switch to env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
+                process.exit(1);
+            }
+            return true;
+        });
+    },
+    createEnv = (name)=>{
+        return exec(`cp -r ./atom-base ./${name}`,(err)=>{
+            if(err) {
+                console.log(`Error on create env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
+                process.exit(1)
+            }
+            return true;
+        });
+    },
+    listEnv = ()=>{
+        return exec(`ls -d */`,(err, stdout)=>{
+            if(err) {
+                console.log(`Error on create env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
+                process.exit(1)
+            }
+
+            listDirs = stdout.split("\n");
+
+            excludedDirs = [
+                "node_modules",
+            ];
+
+            for (item of listDirs) {
+                item = item.split("").slice(0,-1).join("");
+                if (item && excludedDirs.indexOf(item))
+                    console.log(chalk.blue.bold(item));
+            }
+            return true;
+        });
+    },
+    deleteEnv = (name)=>{
+        return exec(`rm -rf ./${name}`, (err)=> {
+            if(err) {
+                console.log(`Error delete env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
+                process.exit(1);
+            }
+            return true;
+        });
+    };
+
+
+// Create Env
+if (switcher.new)
+    if (_.isString(switcher.new)) {
+        // Create a copy of atom base and set
+        if( createEnv(switcher.new) && switchEnv(switcher.new) )
+            console.log("Environment Created Sucessfully!");
+    }
+
+
+// Change Env
+if (switcher.change)
+    if (_.isString(switcher.change)) {
+        // Change home .atom directory
+        if( switchEnv(switcher.change) )
+            console.log("Environment changed Sucessfully!");
+    }
+
+
+// List Env
+if (switcher.list)
+    listEnv();
+
+
+// Delete Env
+if (switcher.delete)
+    if (_.isString(switcher.delete)) {
+        if( deleteEnv(switcher.delete) )
+            console.log("Environment deleted Sucessfully!");
+    }
+
+
+// Init Switcher
+if (switcher.init)
+    exec('cp -r ~/.atom/ ./atom-base', (err)=>{
+        (err) ? console.log(`Error on Init Switcher: ${err}`);
+        : console.log("Switcher Sucessfully initialized!");
+    })
