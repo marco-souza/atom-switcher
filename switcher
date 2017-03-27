@@ -24,7 +24,7 @@ switcher
 
 /* Useful Functions */
 let switchEnv = (name)=>{
-        return exec(`ln -sf ./${name} ~/.atom`, (err)=> {
+        return exec(`ln -sf ${__dirname}/${name} ~/.atom`, (err)=> {
             if(err) {
                 console.log(`Error on switch to env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
                 process.exit(1);
@@ -33,7 +33,7 @@ let switchEnv = (name)=>{
         });
     },
     createEnv = (name)=>{
-        return exec(`cp -r ./atom-base ./${name}`,(err)=>{
+        return exec(`cp -r ${__dirname}/atom-base ${__dirname}/${name}`,(err)=>{
             if(err) {
                 console.log(`Error on create env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
                 process.exit(1)
@@ -42,7 +42,7 @@ let switchEnv = (name)=>{
         });
     },
     listEnv = ()=>{
-        return exec(`ls -d */`,(err, stdout)=>{
+        return exec(`ls -d ${__dirname}/*/`,(err, stdout)=>{
             if(err) {
                 console.log(`Error on create env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
                 process.exit(1)
@@ -55,15 +55,15 @@ let switchEnv = (name)=>{
             ];
 
             for (item of listDirs) {
-                item = item.split("").slice(0,-1).join("");
-                if (item && excludedDirs.indexOf(item))
+                item = item.split("").slice(0,-1).join("").split("/").slice(-1).toString();
+                if (item && excludedDirs.indexOf(item) == -1)
                     console.log(chalk.blue.bold(item));
             }
             return true;
         });
     },
     deleteEnv = (name)=>{
-        return exec(`rm -rf ./${name}`, (err)=> {
+        return exec(`rm -rf ${__dirname}/${name}`, (err)=> {
             if(err) {
                 console.log(`Error delete env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
                 process.exit(1);
@@ -106,7 +106,7 @@ if (switcher.delete)
 
 // Init Switcher
 if (switcher.init)
-    exec('cp -r ~/.atom/ ./atom-base', (err)=>{
+    exec('cp -r ~/.atom/ ${__dirname}/atom-base', (err)=>{
         (err) ? console.log(`Error on Init Switcher: ${err}`)
         : console.log("Switcher Sucessfully initialized!");
     })

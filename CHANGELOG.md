@@ -1,3 +1,5 @@
 # Changelog
 
-- [x] Created Switcher
+- INI: Created Switcher
+- FIX: hotfix
+- ENH: Change visualization of list of environments
