@@ -2,68 +2,93 @@
 
 /* Imports */
 let switcher    = require("commander"),
+    fs           = require("fs"),
     _           = require("lodash"),
     exec        = require("child_process").exec,
     chalk       = require("chalk");
 
 /* CLI Setup */
 switcher
-    .version("0.0.1")
+    .version("0.0.2")
     // Create
-    .option("-n, --new [name]", "Create and use the [name] environment")
-    // Change
-    .option("-c, --change [name]", "Switch to [name] environment")
+    .option("-u, --use [name]", "Use a Environment [name], (Create it if not exists))")
     // Delete
     .option("-d, --delete [name]", "Delete [name] environment")
     // List
     .option("-l, --list", "List all created environments")
-    // Init
-    .option("-i, --init", "Init switcher")
     .parse(process.argv)
 
 
+
 /* Useful Functions */
-let switchEnv = (name)=>{
-        return exec(`ln -sf ${__dirname}/${name} ~/.atom`, (err)=> {
-            if(err) {
-                console.log(`Error on switch to env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
-                process.exit(1);
-            }
-            return true;
-        });
+let
+    getLine = (num, token="-")=>{
+        str = "\n";
+        for (let i=0; i<num; i++) str += token;
+        str += "\n";
+        return str;
     },
-    createEnv = (name)=>{
-        return exec(`cp -r ${__dirname}/atom-base ${__dirname}/${name}`,(err)=>{
-            if(err) {
-                console.log(`Error on create env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
-                process.exit(1)
+    title = (str, color='white')=>{
+        console.log(chalk.bold[color](
+            getLine(str.split('').length+2),
+            str,
+            getLine(str.split('').length+2)
+        ));
+    },
+    useEnv = (name)=> {
+        if (!fs.existsSync(`${__dirname}/environments/`)) {
+            fs.mkdirSync(`${__dirname}/environments/`);
+        }
+        fs.exists(`${__dirname}/environments/${name}`, (exists)=> {
+            // If env not exists, create a hard-copy of the current env to the new
+            if (!exists) {
+                // Create Folder
+                fs.mkdirSync(`${__dirname}/environments/${name}`);
+                // Check if is a link
+                let file = `${process.env.HOME}/.atom/config.cson`;
+                if (fs.lstatSync(file).isSymbolicLink()) {
+                    file = fs.readlinkSync(file);
+                }
+                // read current conig.cson
+                dataCurrentEnv = fs.readFileSync(file);
+                // Copy to new env config.cson
+                fs.writeFileSync(`${__dirname}/environments/${name}/config.cson`, dataCurrentEnv);
             }
-            return true;
-        });
+
+            return exec(`rm ~/.atom/config.cson; ln -sf ${__dirname}/environments/${name}/config.cson ~/.atom/config.cson`, (err)=> {
+                if(err) {
+                    console.log(`Error on switch to env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
+                    process.exit(1);
+                    throw err
+                }
+                console.log(`${chalk.green.bold("[SUCESS]")} ${name} Env in use!`);
+                return true;
+            });
+        })
     },
     listEnv = ()=>{
-        return exec(`ls -d ${__dirname}/*/`,(err, stdout)=>{
+        return exec(`ls ${__dirname}/environments/ `,(err, stdout)=>{
             if(err) {
-                console.log(`Error on create env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
+                console.log(chalk.red.bold('[ERR]: You have no envs, sorry!'));
                 process.exit(1)
             }
 
             listDirs = stdout.split("\n");
 
-            excludedDirs = [
-                "node_modules",
-            ];
+            // console.log(chalk.blue.bold("List of env\n${getLine()}"))
+            title("List of Environments", 'blue');
 
             for (item of listDirs) {
-                item = item.split("").slice(0,-1).join("").split("/").slice(-1).toString();
-                if (item && excludedDirs.indexOf(item) == -1)
-                    console.log(chalk.blue.bold(item));
+                // item = item.split("").slice(0,-1).join("").split("/").slice(-1).toString();
+                if (item)
+                    console.log("\n · "+chalk.blue(item));
             }
+            console.log("\n ");
             return true;
         });
     },
     deleteEnv = (name)=>{
-        return exec(`rm -rf ${__dirname}/${name}`, (err)=> {
+        return exec(`rm -rf ${__dirname}/environments/${name}`, (err)=> {
             if(err) {
                 console.log(`Error delete env ${chalk.bold(name)}: ${chalk.red.bold(err)}`);
                 process.exit(1);
@@ -73,21 +98,11 @@ let switchEnv = (name)=>{
     };
 
 
-// Create Env
-if (switcher.new)
-    if (_.isString(switcher.new)) {
-        // Create a copy of atom base and set
-        if( createEnv(switcher.new) && switchEnv(switcher.new) )
-            console.log("Environment Created Sucessfully!");
-    }
-
-
-// Change Env
-if (switcher.change)
-    if (_.isString(switcher.change)) {
-        // Change home .atom directory
-        if( switchEnv(switcher.change) )
-            console.log("Environment changed Sucessfully!");
+// Use passed env
+if (switcher.use)
+    if (_.isString(switcher.use)) {
+        // Change home .atom/config.cson directory
+        useEnv(switcher.use);
     }
 
 
@@ -102,11 +117,3 @@ if (switcher.delete)
         if( deleteEnv(switcher.delete) )
             console.log("Environment deleted Sucessfully!");
     }
-
-
-// Init Switcher
-if (switcher.init)
-    exec('cp -r ~/.atom/ ${__dirname}/atom-base', (err)=>{
-        (err) ? console.log(`Error on Init Switcher: ${err}`)
-        : console.log("Switcher Sucessfully initialized!");
-    })

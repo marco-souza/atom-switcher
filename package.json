@@ -1,6 +1,6 @@
 {
   "name": "atom-switcher",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A script to switch atom environments",
   "main": "switcher",
   "scripts": {
